@@ -8,8 +8,7 @@ import android.view.ViewGroup
 import com.example.aviatickets.R
 import com.example.aviatickets.adapter.OfferListAdapter
 import com.example.aviatickets.databinding.FragmentOfferListBinding
-import com.example.aviatickets.model.service.FakeService
-
+import com.example.aviatickets.model.service.NetworkManager
 
 class OfferListFragment : Fragment() {
 
@@ -25,6 +24,14 @@ class OfferListFragment : Fragment() {
         OfferListAdapter()
     }
 
+    private var currentSortType: SortType = SortType.NONE
+
+    private enum class SortType {
+        NONE,
+        BY_PRICE,
+        BY_DURATION
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,7 +44,7 @@ class OfferListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupUI()
-        adapter.setItems(FakeService.offerList)
+        adapter.setItems(NetworkManager.getCombinedOfferList())
     }
 
     private fun setupUI() {
@@ -47,18 +54,27 @@ class OfferListFragment : Fragment() {
             sortRadioGroup.setOnCheckedChangeListener { _, checkedId ->
                 when (checkedId) {
                     R.id.sort_by_price -> {
-                        /**
-                         * implement sorting by price
-                         */
+                        sortListByPrice()
                     }
 
                     R.id.sort_by_duration -> {
-                        /**
-                         * implement sorting by duration
-                         */
+                        sortListByDuration()
                     }
                 }
             }
         }
     }
+
+    private fun sortListByPrice() {
+        currentSortType = SortType.BY_PRICE
+        val sortedList = NetworkManager.getCombinedOfferList().sortedBy { it.price }
+        adapter.submitList(sortedList)
+    }
+
+    private fun sortListByDuration() {
+        currentSortType = SortType.BY_DURATION
+        val sortedList = NetworkManager.getCombinedOfferList().sortedBy { it.flight.duration }
+        adapter.submitList(sortedList)
+    }
+
 }

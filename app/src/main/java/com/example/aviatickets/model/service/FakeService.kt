@@ -1,123 +1,59 @@
-package com.example.aviatickets.model.service
+    package com.example.aviatickets.model.service
+    import com.google.gson.Gson
+    import com.google.gson.GsonBuilder
+    import retrofit2.Call
+    import retrofit2.Retrofit
+    import retrofit2.converter.gson.GsonConverterFactory
+    import retrofit2.http.GET
 
-import com.example.aviatickets.model.entity.Airline
-import com.example.aviatickets.model.entity.Flight
-import com.example.aviatickets.model.entity.Location
-import com.example.aviatickets.model.entity.Offer
-import java.util.UUID
+    import com.example.aviatickets.model.entity.Airline
+    import com.example.aviatickets.model.entity.Flight
+    import com.example.aviatickets.model.entity.Location
+    import com.example.aviatickets.model.entity.Offer
+    import java.util.UUID
 
-object FakeService {
+    interface ApiService {
 
-    val offerList = listOf(
-        Offer(
-            id = UUID.randomUUID().toString(),
-            price = 24550,
-            flight = Flight(
-                departureLocation = Location(
-                    cityName = "Алматы",
-                    code = "ALA"
-                ),
-                departureTimeInfo = "20:30",
-                arrivalLocation = Location(
-                    cityName = "Астана",
-                    code = "NQZ"
-                ),
-                arrivalTimeInfo = "22-30",
-                flightNumber = "981",
-                airline = Airline(
-                    name = "Air Astana",
-                    code = "KC"
-                ),
-                duration = 120
-            )
-        ),
-        Offer(
-            id = UUID.randomUUID().toString(),
-            price = 16250,
-            flight = Flight(
-                departureLocation = Location(
-                    cityName = "Алматы",
-                    code = "ALA"
-                ),
-                departureTimeInfo = "16:00",
-                arrivalLocation = Location(
-                    cityName = "Астана",
-                    code = "NQZ"
-                ),
-                arrivalTimeInfo = "18-00",
-                flightNumber = "991",
-                airline = Airline(
-                    name = "Air Astana",
-                    code = "KC"
-                ),
-                duration = 120
-            )
-        ),
-        Offer(
-            id = UUID.randomUUID().toString(),
-            price = 8990,
-            flight = Flight(
-                departureLocation = Location(
-                    cityName = "Алматы",
-                    code = "ALA"
-                ),
-                departureTimeInfo = "09:30",
-                arrivalLocation = Location(
-                    cityName = "Астана",
-                    code = "NQZ"
-                ),
-                arrivalTimeInfo = "11-10",
-                flightNumber = "445",
-                airline = Airline(
-                    name = "FlyArystan",
-                    code = "KC"
-                ),
-                duration = 100
-            )
-        ),
-        Offer(
-            id = UUID.randomUUID().toString(),
-            price = 14440,
-            flight = Flight(
-                departureLocation = Location(
-                    cityName = "Алматы",
-                    code = "ALA"
-                ),
-                departureTimeInfo = "14:30",
-                arrivalLocation = Location(
-                    cityName = "Астана",
-                    code = "NQZ"
-                ),
-                arrivalTimeInfo = "16-00",
-                flightNumber = "223",
-                airline = Airline(
-                    name = "SCAT Airlines",
-                    code = "DV"
-                ),
-                duration = 90
-            )
-        ),
-        Offer(
-            id = UUID.randomUUID().toString(),
-            price = 15100,
-            flight = Flight(
-                departureLocation = Location(
-                    cityName = "Алматы",
-                    code = "ALA"
-                ),
-                departureTimeInfo = "18:00",
-                arrivalLocation = Location(
-                    cityName = "Астана",
-                    code = "NQZ"
-                ),
-                arrivalTimeInfo = "20:15",
-                flightNumber = "171",
-                airline = Airline(
-                    name = "QazaqAir",
-                    code = "IQ"
-                ),
-                duration = 135
-            )
-        )
-    )
-}
+        @GET("your_api_endpoint") // Replace with your actual API endpoint
+        fun getOffers(): Call<List<Offer>>
+    }
+
+    object RetrofitService {
+
+        private const val BASE_URL = "https://your_base_url/" // Replace with your actual base URL
+
+        private val gson: Gson = GsonBuilder().setLenient().create()
+
+        private val retrofit = Retrofit.Builder()
+            .baseUrl(BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+
+        val apiService: ApiService = retrofit.create(ApiService::class.java)
+    }
+
+    object NetworkManager {
+
+        // Function to fetch offer list using Retrofit
+        private fun fetchOffers(): List<Offer>? {
+            val call = RetrofitService.apiService.getOffers()
+
+            return try {
+                val response = call.execute()
+                if (response.isSuccessful) {
+                    response.body()
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
+        }
+
+        // Function to get the combined offer list
+        fun getCombinedOfferList(): List<Offer> {
+            val offerList = fetchOffers()
+            return offerList ?: emptyList()
+        }
+    }
